@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Build and Test
+
+on:
+  pull_request:
+    branches:
+      - master
+
+  workflow_call:
+    outputs:
+      coverage-artifact-name:
+        description: The artifact name of the uploaded coverage
+        value: coverage
+      coverage-artifact-id:
+        description: The artifact ID of the uploaded coverage
+        value: ${{ jobs.merge-coverage.outputs.coverage-artifact-id }}
+      coverage-artifact-url:
+        description: The URL of the uploaded coverage
+        value: ${{ jobs.merge-coverage.outputs.coverage-artifact-url }}
+      coverage-percent:
+        description: The coverage percentage
+        value: ${{ jobs.merge-coverage.outputs.coverage-percent }}
+
+permissions:
+  # Required to write the coverage artifacts
+  id-token: write
+
+jobs:
+  build:
+    name: Build and Test
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          - windows
+          - macos
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build
+        if: success() || failure()
+        env:
+          CGO_ENABLED: 0
+        run: go build -v ./...
+
+      - name: Test
+        if: success() || failure()
+        id: test
+        shell: bash
+        run: |
+          file="$(cd '${{ runner.temp }}'; pwd)/${{ matrix.os }}-coverage.out"
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            echo 'coverage-file=${{ runner.temp }}\${{ matrix.os }}-coverage.out' >> "${GITHUB_OUTPUT}"
+          else
+            echo "coverage-file=${file}" >> "${GITHUB_OUTPUT}"
+          fi
+          go test -v -coverprofile "${file}" ./...
+
+      - name: Lint
+        if: success() || failure()
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: 'v1.58'
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: ${{ steps.test.outputs.coverage-file }}
+          retention-days: 1
+
+  merge-coverage:
+    name: Merge Coverage
+    needs: [build]
+    runs-on: ubuntu-latest
+    outputs:
+      coverage-artifact-id: ${{ steps.upload-coverage.outputs.artifact-id }}
+      coverage-artifact-url: ${{ steps.upload-coverage.outputs.artifact-url }}
+      coverage-percent: ${{ steps.coverage.outputs.percent }}
+    steps:
+      - name: Download Coverage
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: ${{ runner.temp }}
+          merge-multiple: true
+
+      - name: Check Coverage Files
+        id: check
+        run: |
+          count=$(ls -1 ${{ runner.temp }}/*-coverage.out | wc -l)
+          echo "count=${count}" >> "${GITHUB_OUTPUT}"
+          echo "merge-enabled=$(test $count -gt 1 && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+
+      - name: Install gcovmerge
+        if: fromJson(steps.check.outputs.merge-enabled)
+        run: go install github.com/wadey/gocovmerge@latest
+
+      - name: Merge Coverage
+        if: fromJson(steps.check.outputs.merge-enabled)
+        id: merge
+        run: |
+          file="${{ runner.temp }}/merged/coverage.out"
+          merge=$(go env GOPATH)/bin/gocovmerge
+          mkdir ${{ runner.temp }}/merged
+          ${merge} ${{ runner.temp }}/*-coverage.out > "${file}"
+          echo "coverage-file=${file}" >> "${GITHUB_OUTPUT}"
+
+      - name: Compute Coverage Percentage
+        if: fromJson(steps.check.outputs.merge-enabled)
+        id: coverage
+        run: |
+          coverage=$(go tool cover -func "${{ steps.merge.outputs.coverage-file }}" | fgrep total | awk '{print $3}')
+          echo "percent=${coverage}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload Coverage
+        if: fromJson(steps.check.outputs.merge-enabled)
+        id: upload-coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: "${{ steps.merge.outputs.coverage-file }}"
+          retention-days: 7
