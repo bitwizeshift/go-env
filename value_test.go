@@ -593,14 +593,14 @@ func TestValuePointer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var got *string
-			err := tc.value.Unmarshal(&got)
+			err := tc.value.Decode(&got)
 
 			if err != nil {
-				t.Fatalf("Value.Unmarshal(%s): got error '%v', want error nil", tc.name, err)
+				t.Fatalf("Value.Decode(%s): got error '%v', want error nil", tc.name, err)
 			}
 
 			if got, want := got, tc.want; !cmp.Equal(got, want) {
-				t.Errorf("Value.Unmarshal(%s): got '%v', want '%v'", tc.name, *got, *tc.want)
+				t.Errorf("Value.Decode(%s): got '%v', want '%v'", tc.name, *got, *tc.want)
 			}
 		})
 	}

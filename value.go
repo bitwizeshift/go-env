@@ -9,10 +9,10 @@ import (
 // for converting to commonly used types.
 type Value string
 
-// Unmarshal the value into the given type.
+// Decode the value into the given type.
 //
-// See [Unmarshal] for more details on what can be returned from this function.
-func (v Value) Unmarshal(value any, opts ...UnmarshalOption) error {
+// See [Decode] for more details on what can be returned from this function.
+func (v Value) Decode(value any, opts ...UnmarshalOption) error {
 	if value == nil {
 		return nil
 	}
@@ -47,7 +47,7 @@ func (v Value) String() string {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Bool() (bool, error) {
 	var result bool
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -55,7 +55,7 @@ func (v Value) Bool() (bool, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Int() (int, error) {
 	var result int
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -63,7 +63,7 @@ func (v Value) Int() (int, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Int8() (int8, error) {
 	var result int8
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -71,7 +71,7 @@ func (v Value) Int8() (int8, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Int16() (int16, error) {
 	var result int16
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -79,7 +79,7 @@ func (v Value) Int16() (int16, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Int32() (int32, error) {
 	var result int32
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -87,7 +87,7 @@ func (v Value) Int32() (int32, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Int64() (int64, error) {
 	var result int64
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -95,7 +95,7 @@ func (v Value) Int64() (int64, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Uint() (uint, error) {
 	var result uint
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -103,7 +103,7 @@ func (v Value) Uint() (uint, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Uint8() (uint8, error) {
 	var result uint8
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -111,7 +111,7 @@ func (v Value) Uint8() (uint8, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Uint16() (uint16, error) {
 	var result uint16
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -119,7 +119,7 @@ func (v Value) Uint16() (uint16, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Uint32() (uint32, error) {
 	var result uint32
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -127,7 +127,7 @@ func (v Value) Uint32() (uint32, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Uint64() (uint64, error) {
 	var result uint64
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -135,7 +135,7 @@ func (v Value) Uint64() (uint64, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Float32() (float32, error) {
 	var result float32
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -143,7 +143,7 @@ func (v Value) Float32() (float32, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Float64() (float64, error) {
 	var result float64
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -152,7 +152,7 @@ func (v Value) Float64() (float64, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Duration() (time.Duration, error) {
 	var result time.Duration
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }
 
@@ -160,6 +160,6 @@ func (v Value) Duration() (time.Duration, error) {
 // See [Unmarshal] for more details on the possible errors that may be returned.
 func (v Value) Time() (time.Time, error) {
 	var result time.Time
-	err := v.Unmarshal(&result)
+	err := v.Decode(&result)
 	return result, err
 }

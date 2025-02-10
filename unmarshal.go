@@ -378,7 +378,7 @@ func Get[T any](name string) (got T, err error) {
 		}
 		return
 	}
-	err = Value(value).Unmarshal(&got)
+	err = Value(value).Decode(&got)
 	return
 }
 
@@ -394,6 +394,6 @@ func GetOr[T any](name string, fallback T) (got T, err error) {
 	if !ok {
 		return fallback, nil
 	}
-	err = Value(value).Unmarshal(&got)
+	err = Value(value).Decode(&got)
 	return
 }
