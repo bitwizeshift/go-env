@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"rodusek.dev/pkg/env"
 )
 
@@ -448,5 +449,83 @@ func TestUnmarshal_RequiredKeySet_ParsesValues(t *testing.T) {
 
 	if got := out.Required; got != want {
 		t.Errorf("Unmarshal(): got '%s', want '%s'", got, want)
+	}
+}
+
+func TestGet(t *testing.T) {
+	testCases := []struct {
+		name    string
+		value   string
+		want    int
+		wantErr error
+	}{
+		{
+			name:  "Value exists and parses correctly",
+			value: "42",
+			want:  42,
+		}, {
+			name:    "Value does not exist",
+			wantErr: env.ErrRequirement,
+		}, {
+			name:    "Value exists but cannot be parsed",
+			value:   "Hello World",
+			wantErr: env.ErrParse,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.value != "" {
+				setenv(t, "VALUE=%s", tc.value)
+			}
+
+			got, err := env.Get[int]("VALUE")
+
+			if got, want := err, tc.wantErr; !cmp.Equal(got, want, cmpopts.EquateErrors()) {
+				t.Fatalf("Get(%s): got err '%v', want '%v'", tc.name, err, tc.wantErr)
+			}
+			if got, want := got, tc.want; got != want {
+				t.Errorf("Get(%s): got '%v', want '%v'", tc.name, got, want)
+			}
+		})
+	}
+}
+
+func TestGetOr(t *testing.T) {
+	testCases := []struct {
+		name    string
+		value   string
+		want    int
+		wantErr error
+	}{
+		{
+			name:  "Value exists and parses correctly",
+			value: "42",
+			want:  42,
+		}, {
+			name: "Value does not exist",
+			want: 42,
+		}, {
+			name:    "Value exists but cannot be parsed",
+			value:   "Hello World",
+			wantErr: env.ErrParse,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.value != "" {
+				setenv(t, "VALUE=%s", tc.value)
+			}
+
+			got, err := env.GetOr[int]("VALUE", 42)
+
+			if got, want := err, tc.wantErr; !cmp.Equal(got, want, cmpopts.EquateErrors()) {
+				t.Fatalf("GetOr(%s): got err '%v', want '%v'", tc.name, err, tc.wantErr)
+			}
+			if got, want := got, tc.want; got != want {
+				t.Errorf("GetOr(%s): got '%v', want '%v'", tc.name, got, want)
+			}
+		})
 	}
 }

@@ -362,3 +362,38 @@ var (
 	durationType = reflect.TypeFor[time.Duration]()
 	timeType     = reflect.TypeFor[time.Time]()
 )
+
+// Get retrieves the value of the environment variable with the given key and
+// unmarshals it into the provided type. This is a strongly-typed equivalent
+// of [os.Getenv].
+//
+// This function will only return errors if the environment variable is not set
+// or if the value cannot be unmarshaled into the provided type correctly.
+func Get[T any](name string) (got T, err error) {
+	value, ok := os.LookupEnv(name)
+	if !ok {
+		err = &RequirementError{
+			Key:  name,
+			Type: reflect.TypeFor[T](),
+		}
+		return
+	}
+	err = Value(value).Unmarshal(&got)
+	return
+}
+
+// GetOr retrieves the value of the environment variable with the given key and
+// unmarshals it into the provided type. If the environment variable is not set,
+// the fallback value is returned instead. This is a strongly-typed equivalent
+// of [os.Getenv] with a fallback.
+//
+// This function will only return errors if the value cannot be unmarshaled into
+// the provided type correctly.
+func GetOr[T any](name string, fallback T) (got T, err error) {
+	value, ok := os.LookupEnv(name)
+	if !ok {
+		return fallback, nil
+	}
+	err = Value(value).Unmarshal(&got)
+	return
+}
